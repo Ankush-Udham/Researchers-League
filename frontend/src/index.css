@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-0: #0A0A0A;
+  --bg-1: #141414;
+  --bg-2: #1F1F1F;
+  --txt-0: #FFFFFF;
+  --txt-1: #A1A1AA;
+  --acc-red: #FF3B30;
+  --acc-blue: #007AFF;
+  --acc-green: #22C55E;
+  --border: rgba(255,255,255,0.10);
+  --border-hover: rgba(255,255,255,0.22);
+  --radius: 0.5rem;
+  --background: 0 0% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 0 0% 14.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 14.9%;
+  --muted-foreground: 0 0% 63.9%;
+  --accent: 0 0% 14.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 16%;
+  --input: 0 0% 16%;
+  --ring: 0 84% 55%;
+}
+
+* { border-color: hsl(var(--border)); }
+
+body {
+  margin: 0;
+  font-family: 'Manrope', 'Inter', sans-serif;
+  background-color: var(--bg-0);
+  color: var(--txt-0);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.font-display { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.01em; }
+.label-tag { text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; }
+
+::selection { background: var(--acc-red); color: #fff; }
+
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.glass { background: rgba(10,10,10,0.65); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+
+.card-tech {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+.card-tech:hover { border-color: var(--acc-red); transform: translateY(-4px); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-0); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--acc-red); }
+
+table { border-collapse: collapse; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
