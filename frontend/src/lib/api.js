@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BACKEND_URL = "https://your-backend-name.onrender.com";
+const BACKEND_URL = "https://researchers-league.onrender.com";
 export const API = `${BACKEND_URL}/api`;
 
 export const fileUrl = (storagePath) => `${API}/files/${storagePath}`;
