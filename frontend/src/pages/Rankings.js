@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { PageHead } from "../components/shared";
+import { useSettings } from "../context/SettingsContext";
 
-const TABS = { OVERALL: "Overall", ...SPORTS };
+cexport default function Rankings() {
+  const { SPORTS, TEAM_COLOR } = useSettings();
+  const TABS = { OVERALL: "Overall", ...SPORTS };
 
-const Table = ({ rows }) => (
+  const [data, setData] = useState(null);
+  const [tab, setTab] = useState("OVERALL");
+  // ...rest of the function
+
+const Table = ({ rows, TEAM_COLOR }) => (
   <div className="overflow-x-auto border border-white/10 rounded-xl" data-testid="standings-table">
     <table className="w-full text-sm min-w-[520px]">
       <thead className="bg-[#1F1F1F] text-zinc-400 label-tag text-xs">
