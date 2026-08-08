@@ -8,6 +8,7 @@ import { SettingsProvider } from "./context/SettingsContext";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { ApplyWidget } from "./components/ApplyWidget";
 import Home from "./pages/Home";
 import Tournament from "./pages/Tournament";
 import Matches from "./pages/Matches";
@@ -53,6 +54,7 @@ function App() {
                 </Routes>
               </main>
               <Footer />
+              <ApplyWidget />
               <ScrollToTop />
               <Toaster theme="dark" position="top-center" richColors />
             </AuthProvider>
