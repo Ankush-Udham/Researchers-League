@@ -432,18 +432,18 @@ async def seed_matches():
 
 
 async def seed_players():
-    if await db.players.count_documents({}) > 0:
-        return
+    # If the database is empty, it will auto-fill with these exact names and photo links
     default = [
-        {"number": 1, "name": "Player 1", "team": "Team A", "role": "Captain"},
-        {"number": 2, "name": "Player 2", "team": "Team A", "role": "All-rounder"},
-        {"number": 3, "name": "Player 3", "team": "Team B", "role": "Captain"},
-        {"number": 4, "name": "Player 4", "team": "Team B", "role": "All-rounder"},
-        {"number": 5, "name": "Player 5", "team": "Team C", "role": "Captain"},
-        {"number": 6, "name": "Player 6", "team": "Team C", "role": "All-rounder"},
+        {"number": 1, "name": "Dinesh", "team": "Team A", "role": "Captain", "photo_url": "/player1.png", "bio": "Type bio here..."},
+        {"number": 2, "name": "Real Name 2", "team": "Team A", "role": "All-rounder", "photo_url": "/player2.png", "bio": "Type bio here..."},
+        {"number": 3, "name": "Real Name 3", "team": "Team B", "role": "Captain", "photo_url": "/player3.png", "bio": "Type bio here..."},
+        {"number": 4, "name": "Real Name 4", "team": "Team B", "role": "All-rounder", "photo_url": "/player4.png", "bio": "Type bio here..."},
+        {"number": 5, "name": "Real Name 5", "team": "Team C", "role": "Captain", "photo_url": "/player5.png", "bio": "Type bio here..."},
+        {"number": 6, "name": "Real Name 6", "team": "Team C", "role": "All-rounder", "photo_url": "/player6.png", "bio": "Type bio here..."},
     ]
     for d in default:
-        await db.players.insert_one(Player(bio="Add player details from the admin panel.", **d).model_dump())
+        # This securely updates the database based on their jersey number
+        await db.players.update_one({"number": d["number"]}, {"$set": d}, upsert=True)
 
 
 @app.on_event("startup")
