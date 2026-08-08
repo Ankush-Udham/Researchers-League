@@ -155,6 +155,13 @@ class FeedbackInput(BaseModel):
     email: str = ""
     message: str
 
+class ApplyInput(BaseModel):
+    name: str
+    program: str
+    year: str
+    phone: str
+    sports: str
+
 
 class SettingsInput(BaseModel):
     league_name: Optional[str] = None
@@ -339,6 +346,34 @@ async def create_feedback(data: FeedbackInput):
 @api_router.get("/feedback")
 async def list_feedback(admin: dict = Depends(get_current_admin)):
     return await db.feedback.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+
+
+import smtplib
+from email.mime.text import MIMEText
+
+@api_router.post("/apply")
+async def submit_application(data: ApplyInput):
+    # 1. Save to the database as a backup
+    doc = {"id": str(uuid.uuid4()), **data.model_dump(), "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.applications.insert_one(doc)
+
+    # 2. Format and send the email
+    msg_content = f"New sports application received:\n\nName: {data.name}\nProgram: {data.program}\nYear: {data.year}\nPhone: {data.phone}\nSports: {data.sports}"
+    msg = MIMEText(msg_content)
+    msg["Subject"] = f"New Application: {data.name} ({data.sports})"
+    msg["From"] = os.environ.get("ADMIN_EMAIL", "ankushudham24@gmail.com")
+    msg["To"] = "ankushudham24@gmail.com"
+
+    try:
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        # Logs in using the credentials in your .env file
+        server.login(os.environ["ADMIN_EMAIL"], os.environ["ADMIN_PASSWORD"])
+        server.send_message(msg)
+        server.quit()
+    except Exception as e:
+        logger.error(f"Email failed to send: {e}")
+
+    return {"ok": True}
 
 
 # ---------------- Gallery ----------------
