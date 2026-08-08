@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
-import { SPORTS, TEAM_COLOR, PageHead } from "../components/shared";
+import { PageHead } from "../components/shared";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 
