@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
-import { SPORTS, TEAM_COLOR, PageHead } from "../components/shared";
+import { PageHead } from "../components/shared";
 
 export default function Tournament() {
   const [matches, setMatches] = useState([]);
