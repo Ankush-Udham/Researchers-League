@@ -3,12 +3,14 @@ import api from "../lib/api";
 import { PageHead } from "../components/shared";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
+import { useSettings } from "../context/SettingsContext";
 
 export default function Matches() {
   const { isAdmin } = useAuth();
   const [matches, setMatches] = useState([]);
   const [sport, setSport] = useState("TT");
   const [edit, setEdit] = useState(null);
+  const { SPORTS, TEAM_COLOR } = useSettings();
 
   const load = () => api.get("/matches").then((r) => setMatches(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
