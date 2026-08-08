@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import api, { fileUrl } from "../lib/api";
 import { useSettings } from "../context/SettingsContext";
-import { PageHead, TEAM_COLOR } from "../components/shared";
+import { PageHead } from "../components/shared";
 import { toast } from "sonner";
 import { Save, Plus, Trash2, Upload } from "lucide-react";
 
