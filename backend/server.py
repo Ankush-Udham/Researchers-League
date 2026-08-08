@@ -163,6 +163,9 @@ class SettingsInput(BaseModel):
     developer_about: Optional[str] = None
     developer_image_url: Optional[str] = None
     history: Optional[list] = None
+    teams: Optional[list] = None
+    sports: Optional[list] = None
+    matches_per_pair: Optional[int] = None
 
 
 SPORTS = {"TT": "Table Tennis", "LT": "Lawn Tennis", "BT": "Badminton"}
@@ -193,7 +196,10 @@ async def get_settings():
     if not s:
         s = {"id": "site", "league_name": "IISER Mohali Sports League",
              "tagline": "6 Players · 3 Teams · 3 Sports", "logo_url": "",
-             "developer_about": "", "developer_image_url": "", "history": []}
+             "developer_about": "", "developer_image_url": "", "history": [],
+             "teams": [{"name": "Team A", "color": "#FF3B30"}, {"name": "Team B", "color": "#007AFF"}, {"name": "Team C", "color": "#22C55E"}],
+             "sports": [{"code": "TT", "name": "Table Tennis"}, {"code": "LT", "name": "Lawn Tennis"}, {"code": "BT", "name": "Badminton"}],
+             "matches_per_pair": 5}
         await db.settings.insert_one(s)
         s.pop("_id", None)
     return s
@@ -251,11 +257,15 @@ async def update_match(match_id: str, data: MatchUpdate, admin: dict = Depends(g
 
 @api_router.get("/standings")
 async def get_standings():
+    settings = await db.settings.find_one({"id": "site"})
+    dynamic_sports = [s["code"] for s in settings.get("sports", [])]
+    dynamic_teams = [t["name"] for t in settings.get("teams", [])]
+    
     matches = await db.matches.find({"status": "completed"}, {"_id": 0}).to_list(500)
     result = {}
-    for sport in SPORTS:
-        table = {t: {"team": t, "played": 0, "won": 0, "lost": 0,
-                     "pf": 0, "pa": 0, "points": 0} for t in TEAMS}
+    for sport in dynamic_sports:
+        table = {t: {"team": t, "played": 0, "won": 0, "lost": 0, "pf": 0, "pa": 0, "points": 0} for t in dynamic_teams}
+
         for m in matches:
             if m["sport"] != sport:
                 continue
