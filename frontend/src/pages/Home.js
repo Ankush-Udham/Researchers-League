@@ -47,7 +47,7 @@ const PlayerRow = ({ p, i }) => {
 
 export default function Home() {
   const { t } = useLang();
-  const { settings } = useSettings();
+  const { settings, SPORTS, TEAM_COLOR } = useSettings();
   const [players, setPlayers] = useState([]);
   const [matches, setMatches] = useState([]);
   const [q, setQ] = useState("");
