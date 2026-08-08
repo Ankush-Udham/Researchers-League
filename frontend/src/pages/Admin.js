@@ -5,7 +5,7 @@ import { PageHead } from "../components/shared";
 import { toast } from "sonner";
 import { Save, Plus, Trash2, Upload } from "lucide-react";
 
-const TABS = ["Branding", "Players", "News", "Developer", "History"];
+const TABS = ["Branding", "League Config", "Players", "News", "Developer", "History"];
 
 const ImgUpload = ({ label, value, onChange, testid }) => {
   const ref = useRef();
@@ -85,6 +85,30 @@ export default function Admin() {
             <div><span className="text-sm text-zinc-400 block mb-2">League Logo</span>
               <ImgUpload label="Upload Logo" value={form.logo_url} onChange={(v) => { setForm({ ...form, logo_url: v }); saveSettings({ logo_url: v }); }} testid="branding-logo-upload" /></div>
             <button onClick={() => saveSettings()} className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#FF3B30] font-semibold" data-testid="branding-save"><Save size={16} /> Save</button>
+          </div>
+        )}
+        {tab === "League Config" && (
+          <div className="space-y-6" data-testid="admin-league">
+            {/* Teams Manager */}
+            <div className="card-tech rounded-xl p-6 space-y-4">
+              <h3 className="font-display text-2xl text-[#FF3B30]">Manage Teams</h3>
+              {(form.teams || []).map((t, i) => (
+                <div key={i} className="flex gap-3">
+                  <input value={t.name} onChange={(e) => { const c = [...form.teams]; c[i].name = e.target.value; setForm({ ...form, teams: c }); }} className="flex-1 bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" placeholder="Team Name" />
+                  <input type="color" value={t.color} onChange={(e) => { const c = [...form.teams]; c[i].color = e.target.value; setForm({ ...form, teams: c }); }} className="h-10 w-14 rounded-lg cursor-pointer bg-transparent border-0" />
+                  <button onClick={() => { const c = form.teams.filter((_, x) => x !== i); setForm({ ...form, teams: c }); }} className="text-[#FF3B30]"><Trash2 size={18} /></button>
+                </div>
+              ))}
+              <button onClick={() => setForm({ ...form, teams: [...(form.teams || []), { name: "New Team", color: "#FFFFFF" }] })} className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full border border-white/15 hover:border-white/40"><Plus size={15} /> Add Team</button>
+            </div>
+
+            {/* Match Constraints */}
+            <div className="card-tech rounded-xl p-6">
+               <h3 className="font-display text-2xl text-[#007AFF] mb-3">Matches Per Pair</h3>
+               <input type="number" min="1" value={form.matches_per_pair || 5} onChange={(e) => setForm({ ...form, matches_per_pair: Number(e.target.value) })} className="w-32 bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2 text-xl font-display" />
+            </div>
+
+            <button onClick={() => saveSettings()} className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#FF3B30] font-semibold"><Save size={16} /> Save League Config</button>
           </div>
         )}
 
