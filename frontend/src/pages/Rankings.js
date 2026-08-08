@@ -3,14 +3,6 @@ import api from "../lib/api";
 import { PageHead } from "../components/shared";
 import { useSettings } from "../context/SettingsContext";
 
-cexport default function Rankings() {
-  const { SPORTS, TEAM_COLOR } = useSettings();
-  const TABS = { OVERALL: "Overall", ...SPORTS };
-
-  const [data, setData] = useState(null);
-  const [tab, setTab] = useState("OVERALL");
-  // ...rest of the function
-
 const Table = ({ rows, TEAM_COLOR }) => (
   <div className="overflow-x-auto border border-white/10 rounded-xl" data-testid="standings-table">
     <table className="w-full text-sm min-w-[520px]">
@@ -40,9 +32,15 @@ const Table = ({ rows, TEAM_COLOR }) => (
 );
 
 export default function Rankings() {
+  const { SPORTS, TEAM_COLOR } = useSettings();
+  const TABS = { OVERALL: "Overall", ...SPORTS };
+
   const [data, setData] = useState(null);
   const [tab, setTab] = useState("OVERALL");
-  useEffect(() => { api.get("/standings").then((r) => setData(r.data)).catch(() => {}); }, []);
+  
+  useEffect(() => { 
+    api.get("/standings").then((r) => setData(r.data)).catch(() => {}); 
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -54,7 +52,7 @@ export default function Rankings() {
               className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${tab === k ? "bg-[#22C55E] border-[#22C55E] text-black" : "border-white/15 text-zinc-300 hover:border-white/40"}`}>{v}</button>
           ))}
         </div>
-        {data ? <Table rows={data[tab]} /> : <p className="text-zinc-500">Loading standings...</p>}
+        {data ? <Table rows={data[tab]} TEAM_COLOR={TEAM_COLOR} /> : <p className="text-zinc-500">Loading standings...</p>}
         <p className="text-xs text-zinc-500 mt-4">Win = 3 pts · Draw = 1 pt · Loss = 0. PF/PA = points for/against. Standings update automatically as results are entered.</p>
       </div>
     </div>
