@@ -1,5 +1,3 @@
-export const SPORTS = { TT: "Table Tennis", LT: "Lawn Tennis", BT: "Badminton" };
-export const TEAM_COLOR = { "Team A": "#FF3B30", "Team B": "#007AFF", "Team C": "#22C55E" };
 
 export const PageHead = ({ label, title, accent = "#FF3B30" }) => (
   <div className="pt-24 pb-8 px-4 sm:px-6 max-w-7xl mx-auto">
