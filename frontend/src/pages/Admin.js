@@ -113,17 +113,60 @@ export default function Admin() {
         )}
 
         {tab === "Players" && (
-          <div className="space-y-4" data-testid="admin-players">
+          <div className="space-y-6" data-testid="admin-players">
+            
+            {/* Add New Player Button */}
+            <div className="flex justify-end">
+              <button onClick={async () => {
+                const newNum = players.length > 0 ? Math.max(...players.map(p => p.number)) + 1 : 1;
+                const newPlayer = { number: newNum, name: `Player ${newNum}`, team: settings?.teams?.[0]?.name || "Team A", role: "", bio: "", photo_url: "" };
+                try {
+                  const { data } = await api.post("/players", newPlayer);
+                  setPlayers([...players, data]);
+                  toast.success("New player added");
+                } catch { toast.error("Failed to add player"); }
+              }} className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">
+                <Plus size={16} /> Add New Player
+              </button>
+            </div>
+
+            {/* Player Cards */}
             {players.map((p, i) => (
               <div key={p.id} className="card-tech rounded-xl p-5 grid sm:grid-cols-2 gap-3" data-testid={`admin-player-${p.number}`}>
-                <div className="flex items-center gap-3"><span className="font-display text-3xl" style={{ color: TEAM_COLOR[p.team] }}>{p.number}</span>
-                  <input value={p.name} onChange={(e) => { const c = [...players]; c[i].name = e.target.value; setPlayers(c); }} className="flex-1 bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" placeholder="Name" /></div>
-                <select value={p.team} onChange={(e) => { const c = [...players]; c[i].team = e.target.value; setPlayers(c); }} className="bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2">
-                  <option>Team A</option><option>Team B</option><option>Team C</option></select>
+                <div className="flex items-center gap-3">
+                  <span className="font-display text-3xl w-8 text-center" style={{ color: TEAM_COLOR[p.team] || "#FFFFFF" }}>{p.number}</span>
+                  <input value={p.name} onChange={(e) => { const c = [...players]; c[i].name = e.target.value; setPlayers(c); }} className="flex-1 bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" placeholder="Name" />
+                </div>
+                
+                {/* Dynamically maps over your new custom teams */}
+                <select value={p.team} onChange={(e) => { const c = [...players]; c[i].team = e.target.value; setPlayers(c); }} className="bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2 text-white">
+                  {(settings?.teams || []).map((t) => (
+                    <option key={t.name} value={t.name}>{t.name}</option>
+                  ))}
+                </select>
+
                 <input value={p.role} onChange={(e) => { const c = [...players]; c[i].role = e.target.value; setPlayers(c); }} className="bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" placeholder="Role" />
+                
+                {/* Uses our upgraded ImgUpload with the GitHub text box */}
                 <ImgUpload label="Photo" value={p.photo_url} onChange={(v) => { const c = [...players]; c[i].photo_url = v; setPlayers(c); }} testid={`player-photo-${p.number}`} />
+                
                 <textarea value={p.bio} onChange={(e) => { const c = [...players]; c[i].bio = e.target.value; setPlayers(c); }} className="sm:col-span-2 bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" placeholder="Bio" rows={2} />
-                <button onClick={() => savePlayer(players[i])} className="sm:col-span-2 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[#FF3B30] font-semibold" data-testid={`save-player-${p.number}`}><Save size={15} /> Save Player</button>
+                
+                <div className="sm:col-span-2 flex gap-3">
+                  <button onClick={() => savePlayer(players[i])} className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[#FF3B30] font-semibold" data-testid={`save-player-${p.number}`}>
+                    <Save size={15} /> Save Player
+                  </button>
+                  <button onClick={async () => {
+                    if(!window.confirm("Are you sure you want to delete this player?")) return;
+                    try {
+                      await api.delete(`/players/${p.id}`);
+                      setPlayers(players.filter(x => x.id !== p.id));
+                      toast.success("Player removed");
+                    } catch { toast.error("Failed to delete"); }
+                  }} className="px-4 py-2 rounded-full border border-white/15 text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
