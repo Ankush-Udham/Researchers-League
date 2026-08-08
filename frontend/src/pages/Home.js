@@ -20,7 +20,7 @@ const FALLBACK = [
 const TEAM_COLOR = { "Team A": "#FF3B30", "Team B": "#007AFF", "Team C": "#22C55E" };
 
 const PlayerRow = ({ p, i }) => {
-  const img = p.photo_url ? (p.photo_url.startsWith("http") ? p.photo_url : fileUrl(p.photo_url)) : FALLBACK[i % FALLBACK.length];
+  const img = p.photo_url ? (p.photo_url.startsWith("http") || p.photo_url.startsWith("/") ? p.photo_url : fileUrl(p.photo_url)) : FALLBACK[i % FALLBACK.length];
   const left = i % 2 === 0;
   return (
     <motion.div
