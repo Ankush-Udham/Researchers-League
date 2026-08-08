@@ -434,12 +434,12 @@ async def seed_matches():
 async def seed_players():
     # If the database is empty, it will auto-fill with these exact names and photo links
     default = [
-        {"number": 1, "name": "Dinesh", "team": "Team A", "role": "Captain", "photo_url": "/player1.png", "bio": "Type bio here..."},
-        {"number": 2, "name": "Real Name 2", "team": "Team A", "role": "All-rounder", "photo_url": "/player2.png", "bio": "Type bio here..."},
-        {"number": 3, "name": "Real Name 3", "team": "Team B", "role": "Captain", "photo_url": "/player3.png", "bio": "Type bio here..."},
-        {"number": 4, "name": "Real Name 4", "team": "Team B", "role": "All-rounder", "photo_url": "/player4.png", "bio": "Type bio here..."},
-        {"number": 5, "name": "Real Name 5", "team": "Team C", "role": "Captain", "photo_url": "/player5.png", "bio": "Type bio here..."},
-        {"number": 6, "name": "Real Name 6", "team": "Team C", "role": "All-rounder", "photo_url": "/player6.png", "bio": "Type bio here..."},
+        {"number": 1, "name": "Ankush Udham", "team": "Team A", "role": "Captain", "photo_url": "/ankush.jpg", "bio": "Type bio here..."},
+        {"number": 2, "name": "Pranaay Ranjan", "team": "Team A", "role": "All-rounder", "photo_url": "/pranay.jpg", "bio": "Type bio here..."},
+        {"number": 3, "name": "Nitin Yadav", "team": "Team B", "role": "Captain", "photo_url": "/nitin.jpg", "bio": "Type bio here..."},
+        {"number": 4, "name": "Vyashnav P.T", "team": "Team B", "role": "All-rounder", "photo_url": "/vyshnpt.jpg", "bio": "Type bio here..."},
+        {"number": 5, "name": "Neeraj Mishra", "team": "Team C", "role": "Captain", "photo_url": "/neeraj.jpg", "bio": "Type bio here..."},
+        {"number": 6, "name": "Subrata BARMAN", "team": "Team C", "role": "All-rounder", "photo_url": "/subrat.jpg", "bio": "Type bio here..."},
     ]
     for d in default:
         # This securely updates the database based on their jersey number
