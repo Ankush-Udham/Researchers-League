@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { PageHead } from "../components/shared";
+import { useSettings } from "../context/SettingsContext";
 
 export default function Tournament() {
   const [matches, setMatches] = useState([]);
   const [sport, setSport] = useState("TT");
   useEffect(() => { api.get("/matches").then((r) => setMatches(r.data)).catch(() => {}); }, []);
   const rows = matches.filter((m) => m.sport === sport);
+  const { SPORTS, TEAM_COLOR } = useSettings();
 
   return (
     <div className="min-h-screen">
