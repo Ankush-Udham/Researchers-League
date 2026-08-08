@@ -194,9 +194,14 @@ async def me(admin: dict = Depends(get_current_admin)):
 async def get_settings():
     s = await db.settings.find_one({"id": "site"}, {"_id": 0})
     if not s:
-        s = {"id": "site", "league_name": "IISER Mohali Sports League",
-             "tagline": "6 Players · 3 Teams · 3 Sports", "logo_url": "",
-             "developer_about": "", "developer_image_url": "", "history": [],
+        # If the database is empty, it will auto-fill with these exact defaults
+        s = {"id": "site", 
+             "league_name": "IISER Mohali Researchers League",
+             "tagline": "Balidaan · Parama · Dharama", 
+             "logo_url": "/logoprrl.png",  # <-- PASTE YOUR LOGO LINK HERE
+             "developer_about": "Hello I am Ankush Udham, a final year BS-MS graduate student. I am working on single crystals organic microcavities and my future work is to integrate it with 2D materials to get detailed studies of Fabry Perot cavity configuration", # <-- TYPE YOUR ABOUT TEXT HERE
+             "developer_image_url": "/ankushdev.png", # <-- PASTE YOUR ADMIN PHOTO LINK HERE
+             "history": [],
              "teams": [{"name": "Team A", "color": "#FF3B30"}, {"name": "Team B", "color": "#007AFF"}, {"name": "Team C", "color": "#22C55E"}],
              "sports": [{"code": "TT", "name": "Table Tennis"}, {"code": "LT", "name": "Lawn Tennis"}, {"code": "BT", "name": "Badminton"}],
              "matches_per_pair": 5}
