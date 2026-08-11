@@ -270,45 +270,36 @@ async def update_match(match_id: str, data: MatchUpdate, admin: dict = Depends(g
 @api_router.get("/standings")
 async def get_standings():
     settings = await db.settings.find_one({"id": "site"})
-    dynamic_sports = [s["code"] for s in settings.get("sports", [])]
-    dynamic_teams = [t["name"] for t in settings.get("teams", [])]
-    
-    matches = await db.matches.find({"status": "completed"}, {"_id": 0}).to_list(500)
+    if not settings:
+        dynamic_sports, dynamic_teams = ["TT", "LT", "BT"], ["Team A", "Team B", "Team C"]
+    else:
+        dynamic_sports = [s["code"] for s in settings.get("sports", [{"code": "TT"}, {"code": "LT"}, {"code": "BT"}])]
+        dynamic_teams = [t["name"] for t in settings.get("teams", [{"name": "Team A"}, {"name": "Team B"}, {"name": "Team C"}])]
+        
+    matches = await db.matches.find({"status": "completed"}, {"_id": 0}).to_list(5000)
     result = {}
     for sport in dynamic_sports:
         table = {t: {"team": t, "played": 0, "won": 0, "lost": 0, "pf": 0, "pa": 0, "points": 0} for t in dynamic_teams}
-
         for m in matches:
-            if m["sport"] != sport:
-                continue
-            t1, t2 = m["team1"], m["team2"]
-            s1 = m.get("team1_score") or 0
-            s2 = m.get("team2_score") or 0
-            table[t1]["played"] += 1
-            table[t2]["played"] += 1
-            table[t1]["pf"] += s1
-            table[t1]["pa"] += s2
-            table[t2]["pf"] += s2
-            table[t2]["pa"] += s1
+            if m.get("sport") != sport: continue
+            t1, t2 = m.get("team1"), m.get("team2")
+            if t1 not in table or t2 not in table: continue
+            s1, s2 = m.get("team1_score") or 0, m.get("team2_score") or 0
+            table[t1]["played"] += 1; table[t2]["played"] += 1
+            table[t1]["pf"] += s1; table[t1]["pa"] += s2
+            table[t2]["pf"] += s2; table[t2]["pa"] += s1
             if s1 > s2:
-                table[t1]["won"] += 1
-                table[t2]["lost"] += 1
-                table[t1]["points"] += 3
+                table[t1]["won"] += 1; table[t2]["lost"] += 1; table[t1]["points"] += 3
             elif s2 > s1:
-                table[t2]["won"] += 1
-                table[t1]["lost"] += 1
-                table[t2]["points"] += 3
+                table[t2]["won"] += 1; table[t1]["lost"] += 1; table[t2]["points"] += 3
             else:
-                table[t1]["points"] += 1
-                table[t2]["points"] += 1
-        rows = sorted(table.values(), key=lambda r: (r["points"], r["won"], r["pf"] - r["pa"]), reverse=True)
-        result[sport] = rows
-    # overall
-    overall = {t: {"team": t, "played": 0, "won": 0, "lost": 0, "pf": 0, "pa": 0, "points": 0} for t in TEAMS}
-    for sport in SPORTS:
+                table[t1]["points"] += 1; table[t2]["points"] += 1
+        result[sport] = sorted(table.values(), key=lambda r: (r["points"], r["won"], r["pf"] - r["pa"]), reverse=True)
+    
+    overall = {t: {"team": t, "played": 0, "won": 0, "lost": 0, "pf": 0, "pa": 0, "points": 0} for t in dynamic_teams}
+    for sport in dynamic_sports:
         for r in result[sport]:
-            for k in ["played", "won", "lost", "pf", "pa", "points"]:
-                overall[r["team"]][k] += r[k]
+            for k in ["played", "won", "lost", "pf", "pa", "points"]: overall[r["team"]][k] += r[k]
     result["OVERALL"] = sorted(overall.values(), key=lambda r: (r["points"], r["won"], r["pf"] - r["pa"]), reverse=True)
     return result
 
