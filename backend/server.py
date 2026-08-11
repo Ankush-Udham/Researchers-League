@@ -170,14 +170,14 @@ class SettingsInput(BaseModel):
     developer_about: Optional[str] = None
     developer_image_url: Optional[str] = None
     history: Optional[list] = None
+    format: Optional[str] = "Singles"
+    tt_matches: Optional[int] = 5
+    lt_matches: Optional[int] = 3
+    bt_matches: Optional[int] = 3
     teams: Optional[list] = None
     sports: Optional[list] = None
-    matches_per_pair: Optional[int] = None
 
 
-SPORTS = {"TT": "Table Tennis", "LT": "Lawn Tennis", "BT": "Badminton"}
-TEAMS = ["Team A", "Team B", "Team C"]
-PAIRS = [("Team A", "Team B"), ("Team A", "Team C"), ("Team B", "Team C")]
 
 
 # ---------------- Auth endpoints ----------------
