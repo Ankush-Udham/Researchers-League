@@ -7,8 +7,8 @@ import App from "@/App";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60_000,
-      refetchOnWindowFocus: false,
+      staleTime: 0, // <-- This forces instant updates for scores and images
+      refetchOnWindowFocus: true, // <-- Automatically refreshes when you tab back to the site
     },
   },
 });
