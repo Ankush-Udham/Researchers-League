@@ -267,6 +267,36 @@ async def update_match(match_id: str, data: MatchUpdate, admin: dict = Depends(g
     return await db.matches.find_one({"id": match_id}, {"_id": 0})
 
 
+@api_router.post("/matches/generate")
+async def generate_fixtures(admin: dict = Depends(get_current_admin)):
+    settings = await db.settings.find_one({"id": "site"})
+    teams = [t["name"] for t in settings.get("teams", [])] if settings else []
+    
+    match_counts = {
+        "TT": settings.get("tt_matches", 5) if settings else 5,
+        "LT": settings.get("lt_matches", 3) if settings else 3,
+        "BT": settings.get("bt_matches", 3) if settings else 3
+    }
+    
+    docs = []
+    for sport in ["TT", "LT", "BT"]:
+        rounds = match_counts[sport]
+        for i in range(len(teams)):
+            for j in range(i + 1, len(teams)):
+                t1, t2 = teams[i], teams[j]
+                for rnd in range(1, rounds + 1):
+                    docs.append({
+                        "id": str(uuid.uuid4()), "sport": sport, "team1": t1, "team2": t2,
+                        "round": rnd, "scheduled_date": "", "scheduled_time": "",
+                        "venue": "IISER Mohali Sports Complex",
+                        "team1_score": None, "team2_score": None, "status": "scheduled"
+                    })
+                    
+    await db.matches.delete_many({})
+    if docs: await db.matches.insert_many(docs)
+    return {"ok": True, "total_matches": len(docs)}
+
+
 @api_router.get("/standings")
 async def get_standings():
     settings = await db.settings.find_one({"id": "site"})
