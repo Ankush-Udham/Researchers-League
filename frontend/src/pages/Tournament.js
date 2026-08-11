@@ -45,6 +45,19 @@ export default function Tournament() {
           </table>
         </div>
       </div>
+                {/* Sport Info & Quick Links */}
+        <div className="mt-16 border-t border-white/10 pt-10">
+          <h3 className="font-display text-3xl mb-6">Sports Information</h3>
+          <div className="grid sm:grid-cols-3 gap-4">
+            {Object.entries(SPORTS).map(([k, v]) => (
+              <div key={k} onClick={() => setSport(k)} className="card-tech rounded-xl p-5 cursor-pointer hover:bg-white/5 transition-colors">
+                <span className="label-tag text-xs text-[#FF3B30]">{k}</span>
+                <h4 className="font-display text-2xl mt-1">{v}</h4>
+                <p className="text-sm text-zinc-400 mt-2">Click to view all {v} fixtures, schedules, and live match scores.</p>
+              </div>
+            ))}
+          </div>
+        </div>
     </div>
   );
 }
