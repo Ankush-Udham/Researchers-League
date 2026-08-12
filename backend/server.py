@@ -273,7 +273,7 @@ async def generate_fixtures(admin: dict = Depends(get_current_admin)):
     settings = await db.settings.find_one({"id": "site"})
     teams = [t["name"] for t in settings.get("teams", [])] if settings else []
     
-   match_counts = {
+    match_counts = {
         "TT": max(1, int(settings.get("tt_matches") or 5)) if settings else 5,
         "LT": max(1, int(settings.get("lt_matches") or 3)) if settings else 3,
         "BT": max(1, int(settings.get("bt_matches") or 3)) if settings else 3
@@ -290,11 +290,13 @@ async def generate_fixtures(admin: dict = Depends(get_current_admin)):
                         "id": str(uuid.uuid4()), "sport": sport, "team1": t1, "team2": t2,
                         "round": rnd, "scheduled_date": "", "scheduled_time": "",
                         "venue": "IISER Mohali Sports Complex",
-                        "team1_score": None, "team2_score": None, "status": "scheduled"
+                        "team1_score": None, "team2_score": None,
+                        "team1_pts": None, "team2_pts": None, "status": "scheduled"
                     })
                     
     await db.matches.delete_many({})
-    if docs: await db.matches.insert_many(docs)
+    if docs: 
+        await db.matches.insert_many(docs)
     return {"ok": True, "total_matches": len(docs)}
 
 
