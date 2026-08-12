@@ -20,19 +20,25 @@ export default function Matches() {
 
   const handleEdit = (m) => {
     setEditingId(m.id);
-    // Presets custom points to standard 3/1/0 if empty
     let p1 = m.team1_pts; let p2 = m.team2_pts;
     if (p1 === undefined || p1 === null) {
       if (m.team1_score > m.team2_score) { p1 = 3; p2 = 0; }
       else if (m.team2_score > m.team1_score) { p1 = 0; p2 = 3; }
       else { p1 = 1; p2 = 1; }
     }
-    setEditForm({ team1_pts: p1, team2_pts: p2 });
+    // FIX 1: We spread the entire match (...m) into the form so the backend doesn't forget the scores when we save the points!
+    setEditForm({ ...m, team1_pts: p1, team2_pts: p2 });
   };
 
   const saveEdit = async (id) => {
     try {
-      await api.put(`/matches/${id}`, editForm);
+      // FIX 2: We convert the text back to a number right before sending it to the database
+      const payload = { 
+        ...editForm, 
+        team1_pts: editForm.team1_pts === "" ? 0 : Number(editForm.team1_pts),
+        team2_pts: editForm.team2_pts === "" ? 0 : Number(editForm.team2_pts)
+      };
+      await api.put(`/matches/${id}`, payload);
       toast.success("Custom points awarded! Rankings updated.");
       setEditingId(null);
       load();
@@ -59,7 +65,6 @@ export default function Matches() {
         <div className="grid gap-3">
           {currentMatches.length === 0 ? <p className="text-zinc-500 text-center py-10">No stats available.</p> : currentMatches.map(m => {
             
-            // Determine Winner to display
             let winnerText = <span className="text-zinc-500 text-xs">Awaiting Result</span>;
             if (m.status === "completed") {
               if (m.team1_score > m.team2_score) winnerText = <span className="text-[#22C55E] text-xs font-bold uppercase">{m.team1} Won</span>;
@@ -82,10 +87,11 @@ export default function Matches() {
               {editingId === m.id ? (
                 <div className="flex items-center gap-3 bg-[#0A0A0A] p-2 rounded-lg border border-white/15">
                   <div className="text-center"><span className="text-xs text-zinc-500 block">T1 Pts</span>
-                    <input type="number" min="0" value={editForm.team1_pts} onChange={e => setEditForm({...editForm, team1_pts: Number(e.target.value)})} className="w-12 bg-transparent text-center font-display text-xl outline-none text-white border-b border-white/10" />
+                    {/* FIX 3: We removed the strict 'Number()' wrap here so your Backspace key actually works! */}
+                    <input type="number" min="0" value={editForm.team1_pts ?? ""} onChange={e => setEditForm({...editForm, team1_pts: e.target.value})} className="w-12 bg-transparent text-center font-display text-xl outline-none text-white border-b border-white/10" />
                   </div>
                   <div className="text-center"><span className="text-xs text-zinc-500 block">T2 Pts</span>
-                    <input type="number" min="0" value={editForm.team2_pts} onChange={e => setEditForm({...editForm, team2_pts: Number(e.target.value)})} className="w-12 bg-transparent text-center font-display text-xl outline-none text-white border-b border-white/10" />
+                    <input type="number" min="0" value={editForm.team2_pts ?? ""} onChange={e => setEditForm({...editForm, team2_pts: e.target.value})} className="w-12 bg-transparent text-center font-display text-xl outline-none text-white border-b border-white/10" />
                   </div>
                   <button onClick={() => saveEdit(m.id)} className="text-[#22C55E] p-1 ml-2"><Save size={20}/></button>
                   <button onClick={() => setEditingId(null)} className="text-[#FF3B30] p-1"><X size={20}/></button>
