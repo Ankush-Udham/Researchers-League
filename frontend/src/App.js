@@ -1,4 +1,5 @@
 import "@/App.css";
+import Legal from "./pages/Legal";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Toaster } from "sonner";
@@ -49,6 +50,7 @@ function App() {
                   <Route path="/developer" element={<Developer />} />
                   <Route path="/history" element={<History />} />
                   <Route path="/gallery" element={<Gallery />} />
+                  <Route path="/legal" element={<Legal />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/admin" element={<Protected><Admin /></Protected>} />
                 </Routes>
