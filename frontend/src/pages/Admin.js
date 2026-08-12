@@ -191,7 +191,20 @@ export default function Admin() {
                   <input value={p.name || ""} onChange={(e) => { const c = [...players]; c[i].name = e.target.value; setPlayers(c); }} className="flex-1 bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2 text-white" placeholder="Name" />
                 </div>
                 
-                <select value={p.team || ""} onChange={(e) => { const c = [...players]; c[i].team = e.target.value; setPlayers(c); }} className="bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2 text-white">
+<select value={p.team || ""} onChange={(e) => { 
+                  const newTeam = e.target.value;
+                  if (newTeam === p.team) return; // No change made
+                  
+                  const maxAllowed = form.format === "Doubles" ? 2 : 1;
+                  const currentCount = players.filter(x => x.team === newTeam).length;
+                  
+                  if (currentCount >= maxAllowed) {
+                    toast.error(`${newTeam} is full! (${maxAllowed} player limit)`);
+                    return;
+                  }
+                  
+                  const c = [...players]; c[i].team = newTeam; setPlayers(c); 
+                }} className="bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2 text-white outline-none focus:border-[#FF3B30]">
                   {Array.isArray(settings?.teams) ? settings.teams.map((t) => (
                     <option key={t.name} value={t.name}>{t.name}</option>
                   )) : <option>Team A</option>}
