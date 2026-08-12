@@ -1,84 +1,104 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { PageHead } from "../components/shared";
-import { useAuth } from "../context/AuthContext";
-import { toast } from "sonner";
 import { useSettings } from "../context/SettingsContext";
+import { toast } from "sonner";
+import { Edit2, Save, X } from "lucide-react";
 
 export default function Matches() {
-  const { isAdmin } = useAuth();
+  const { TEAM_COLOR } = useSettings();
   const [matches, setMatches] = useState([]);
-  const [sport, setSport] = useState("TT");
-  const [edit, setEdit] = useState(null);
-  const { SPORTS, TEAM_COLOR } = useSettings();
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [activeTab, setActiveTab] = useState("TT");
 
-  const load = () => api.get("/matches").then((r) => setMatches(r.data)).catch(() => {});
+  const SPORTS_LIST = [
+    { code: "TT", name: "Table Tennis" },
+    { code: "LT", name: "Lawn Tennis" },
+    { code: "BT", name: "Badminton" }
+  ];
+
+  const isAdmin = !!localStorage.getItem("token");
+
+  const load = () => api.get("/matches").then(r => setMatches(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
-  const rows = matches.filter((m) => m.sport === sport);
 
-  const save = async () => {
-    try {
-      await api.put(`/matches/${edit.id}`, {
-        scheduled_date: edit.scheduled_date, scheduled_time: edit.scheduled_time, venue: edit.venue,
-        team1_score: edit.team1_score === "" ? null : Number(edit.team1_score),
-        team2_score: edit.team2_score === "" ? null : Number(edit.team2_score),
-        status: (edit.team1_score !== "" && edit.team2_score !== "" && edit.team1_score != null && edit.team2_score != null) ? "completed" : "scheduled",
-      });
-      toast.success("Match updated");
-      setEdit(null); load();
-    } catch (e) { toast.error("Update failed"); }
+  const handleEdit = (m) => {
+    setEditingId(m.id);
+    setEditForm({ team1_score: m.team1_score || 0, team2_score: m.team2_score || 0, status: m.status || "scheduled" });
   };
+
+  const saveEdit = async (id) => {
+    try {
+      await api.put(`/matches/${id}`, editForm);
+      toast.success("Score updated! Rankings have been automatically recalculated.");
+      setEditingId(null);
+      load();
+    } catch { toast.error("Failed to update score"); }
+  };
+
+  const currentMatches = matches.filter(m => m.sport === activeTab);
 
   return (
     <div className="min-h-screen">
-      <PageHead label="Matches & Stats" title="MATCH CENTRE" accent="#007AFF" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
-        {!isAdmin && <p className="text-zinc-400 mb-6">Live fixtures with dates, times and results. The developer updates results as matches complete.</p>}
-        {isAdmin && <p className="text-[#22C55E] mb-6 text-sm">Admin mode — click a match to edit date, time and score.</p>}
-        <div className="flex gap-2 mb-6">
-          {Object.entries(SPORTS).map(([k, v]) => (
-            <button key={k} data-testid={`mtab-${k}`} onClick={() => setSport(k)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${sport === k ? "bg-[#007AFF] border-[#007AFF]" : "border-white/15 text-zinc-300 hover:border-white/40"}`}>{v}</button>
+      <PageHead label="Matches & Stats" title="MATCH CENTRE" accent="#FF3B30" />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-20 space-y-8">
+        <p className="text-zinc-400 text-sm mb-4">Admin mode — click the edit icon on any match to update the score.</p>
+        
+        {/* Sport Navigation Tabs */}
+        <div className="flex flex-wrap gap-3 border-b border-white/10 pb-4">
+          {SPORTS_LIST.map(s => (
+            <button 
+              key={s.code} 
+              onClick={() => setActiveTab(s.code)}
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${activeTab === s.code ? "bg-[#FF3B30] text-white" : "bg-[#141414] text-zinc-400 hover:text-white border border-white/10"}`}
+            >
+              {s.name} Fixtures
+            </button>
           ))}
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((m) => (
-            <div key={m.id} className={`card-tech rounded-xl p-5 ${isAdmin ? "cursor-pointer" : ""}`} data-testid={`match-card-${m.id}`}
-              onClick={() => isAdmin && setEdit({ ...m, team1_score: m.team1_score ?? "", team2_score: m.team2_score ?? "" })}>
-              <div className="flex justify-between items-center">
-                <span className="label-tag text-xs text-zinc-500">Round {m.round}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs ${m.status === "completed" ? "bg-[#22C55E]/20 text-[#22C55E]" : "bg-white/10 text-zinc-400"}`}>{m.status}</span>
+
+        {/* Fixtures List */}
+        <div className="grid gap-3">
+          {currentMatches.length === 0 ? (
+            <p className="text-zinc-500 text-center py-10">No fixtures generated for this sport yet.</p>
+          ) : currentMatches.map(m => (
+            <div key={m.id} className="card-tech rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4 flex-1">
+                <span className="font-semibold text-lg" style={{ color: TEAM_COLOR?.[m.team1] || "#FFF" }}>{m.team1}</span>
+                <span className="text-zinc-500 text-sm">vs</span>
+                <span className="font-semibold text-lg" style={{ color: TEAM_COLOR?.[m.team2] || "#FFF" }}>{m.team2}</span>
               </div>
-              <div className="flex items-center justify-between mt-4">
-                <span className="font-semibold text-sm" style={{ color: TEAM_COLOR[m.team1] }}>{m.team1}</span>
-                <span className="font-display text-3xl">{m.status === "completed" ? `${m.team1_score}-${m.team2_score}` : "vs"}</span>
-                <span className="font-semibold text-sm" style={{ color: TEAM_COLOR[m.team2] }}>{m.team2}</span>
-              </div>
-              <p className="text-xs text-zinc-500 mt-4">{m.scheduled_date || "Date TBD"} · {m.scheduled_time || "Time TBD"}</p>
+
+              {editingId === m.id ? (
+                <div className="flex items-center gap-3 bg-[#0A0A0A] p-2 rounded-lg border border-white/15">
+                  <input type="number" min="0" value={editForm.team1_score} onChange={e => setEditForm({...editForm, team1_score: Number(e.target.value)})} className="w-12 bg-transparent text-center font-display text-xl outline-none text-white" />
+                  <span className="text-zinc-500">-</span>
+                  <input type="number" min="0" value={editForm.team2_score} onChange={e => setEditForm({...editForm, team2_score: Number(e.target.value)})} className="w-12 bg-transparent text-center font-display text-xl outline-none text-white" />
+                  
+                  <select value={editForm.status} onChange={e => setEditForm({...editForm, status: e.target.value})} className="bg-[#141414] text-xs px-2 py-2 rounded outline-none border border-white/10 text-white">
+                    <option value="scheduled">Scheduled</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                  
+                  <button onClick={() => saveEdit(m.id)} className="text-[#22C55E] p-1"><Save size={20}/></button>
+                  <button onClick={() => setEditingId(null)} className="text-[#FF3B30] p-1"><X size={20}/></button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-5">
+                  <span className="font-display text-2xl tracking-widest">{m.team1_score ?? "-"} : {m.team2_score ?? "-"}</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${m.status === "completed" ? "bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30" : "bg-white/5 text-zinc-400 border border-white/10"}`}>
+                    {m.status || "SCHEDULED"}
+                  </span>
+                  {isAdmin && (
+                    <button onClick={() => handleEdit(m)} className="text-zinc-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><Edit2 size={16}/></button>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
       </div>
-
-      {edit && (
-        <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center p-4" onClick={() => setEdit(null)}>
-          <div className="bg-[#141414] border border-white/15 rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()} data-testid="match-edit-modal">
-            <h4 className="font-display text-2xl mb-4">{edit.team1} vs {edit.team2}</h4>
-            <div className="space-y-3">
-              <input type="date" value={edit.scheduled_date} onChange={(e) => setEdit({ ...edit, scheduled_date: e.target.value })} className="w-full bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" data-testid="edit-date" />
-              <input type="time" value={edit.scheduled_time} onChange={(e) => setEdit({ ...edit, scheduled_time: e.target.value })} className="w-full bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" data-testid="edit-time" />
-              <div className="flex gap-3">
-                <input type="number" min="0" placeholder={edit.team1} value={edit.team1_score} onChange={(e) => setEdit({ ...edit, team1_score: e.target.value })} className="w-1/2 bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" data-testid="edit-score1" />
-                <input type="number" min="0" placeholder={edit.team2} value={edit.team2_score} onChange={(e) => setEdit({ ...edit, team2_score: e.target.value })} className="w-1/2 bg-[#0A0A0A] border border-white/15 rounded-lg px-3 py-2" data-testid="edit-score2" />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-5">
-              <button onClick={save} className="flex-1 py-2 rounded-full bg-[#FF3B30] font-semibold" data-testid="edit-save">Save</button>
-              <button onClick={() => setEdit(null)} className="px-4 py-2 rounded-full border border-white/15">Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
