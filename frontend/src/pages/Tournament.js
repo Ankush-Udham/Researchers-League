@@ -2,62 +2,94 @@ import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { PageHead } from "../components/shared";
 import { useSettings } from "../context/SettingsContext";
+import { toast } from "sonner";
+import { Edit2, Save, X } from "lucide-react";
 
 export default function Tournament() {
-  const [matches, setMatches] = useState([]);
-  const [sport, setSport] = useState("TT");
-  useEffect(() => { api.get("/matches").then((r) => setMatches(r.data)).catch(() => {}); }, []);
-  const rows = matches.filter((m) => m.sport === sport);
   const { SPORTS, TEAM_COLOR } = useSettings();
+  const [matches, setMatches] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  
+  // Checks if you are logged in as admin
+  const isAdmin = !!localStorage.getItem("token");
+
+  const load = () => api.get("/matches").then(r => setMatches(r.data)).catch(() => {});
+  useEffect(() => { load(); }, []);
+
+  const handleEdit = (m) => {
+    setEditingId(m.id);
+    setEditForm({ team1_score: m.team1_score || 0, team2_score: m.team2_score || 0, status: m.status || "scheduled" });
+  };
+
+  const saveEdit = async (id) => {
+    try {
+      await api.put(`/matches/${id}`, editForm);
+      toast.success("Score updated! Rankings have been recalculated.");
+      setEditingId(null);
+      load();
+    } catch { toast.error("Failed to update"); }
+  };
 
   return (
     <div className="min-h-screen">
-      <PageHead label="Tournament & Events" title="THE SCHEDULE" accent="#FF3B30" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
-        <p className="text-zinc-400 mb-6 max-w-2xl">Round-robin format — every pair of teams plays 5 matches in each sport. 45 fixtures across Table Tennis, Lawn Tennis and Badminton.</p>
-        <div className="flex gap-2 mb-6">
-          {Object.entries(SPORTS).map(([k, v]) => (
-            <button key={k} data-testid={`tab-${k}`} onClick={() => setSport(k)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${sport === k ? "bg-[#FF3B30] border-[#FF3B30]" : "border-white/15 text-zinc-300 hover:border-white/40"}`}>{v}</button>
-          ))}
-        </div>
-        <div className="overflow-x-auto border border-white/10 rounded-xl" data-testid="schedule-table">
-          <table className="w-full text-sm min-w-[560px]">
-            <thead className="bg-[#1F1F1F] text-zinc-400 label-tag text-xs">
-              <tr>
-                <th className="text-left p-4">Round</th><th className="text-left p-4">Fixture</th>
-                <th className="text-left p-4">Date</th><th className="text-left p-4">Time</th>
-                <th className="text-left p-4">Score</th><th className="text-left p-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((m) => (
-                <tr key={m.id} className="border-t border-white/10 hover:bg-white/5" data-testid={`fixture-${m.id}`}>
-                  <td className="p-4">R{m.round}</td>
-                  <td className="p-4 font-semibold"><span style={{ color: TEAM_COLOR[m.team1] }}>{m.team1}</span> <span className="text-zinc-500">vs</span> <span style={{ color: TEAM_COLOR[m.team2] }}>{m.team2}</span></td>
-                  <td className="p-4 text-zinc-300">{m.scheduled_date || "TBD"}</td>
-                  <td className="p-4 text-zinc-300">{m.scheduled_time || "TBD"}</td>
-                  <td className="p-4 font-display text-lg">{m.status === "completed" ? `${m.team1_score} - ${m.team2_score}` : "—"}</td>
-                  <td className="p-4"><span className={`px-2 py-1 rounded-full text-xs ${m.status === "completed" ? "bg-[#22C55E]/20 text-[#22C55E]" : "bg-white/10 text-zinc-400"}`}>{m.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-                {/* Sport Info & Quick Links */}
-        <div className="mt-16 border-t border-white/10 pt-10">
-          <h3 className="font-display text-3xl mb-6">Sports Information</h3>
-          <div className="grid sm:grid-cols-3 gap-4">
-            {Object.entries(SPORTS).map(([k, v]) => (
-              <div key={k} onClick={() => setSport(k)} className="card-tech rounded-xl p-5 cursor-pointer hover:bg-white/5 transition-colors">
-                <span className="label-tag text-xs text-[#FF3B30]">{k}</span>
-                <h4 className="font-display text-2xl mt-1">{v}</h4>
-                <p className="text-sm text-zinc-400 mt-2">Click to view all {v} fixtures, schedules, and live match scores.</p>
+      <PageHead label="Schedule & Results" title="TOURNAMENT" accent="#007AFF" />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-20 space-y-12">
+        
+        {/* Groups matches by Sport automatically */}
+        {Object.entries(SPORTS || {}).map(([sportCode, sportName]) => {
+          const sportMatches = matches.filter(m => m.sport === sportCode);
+          if (sportMatches.length === 0) return null;
+          
+          return (
+            <div key={sportCode} className="space-y-4">
+              <h3 className="font-display text-3xl text-[#007AFF] border-b border-white/10 pb-3">{sportName} Fixtures</h3>
+              <div className="grid gap-3">
+                {sportMatches.map(m => (
+                  <div key={m.id} className="card-tech rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                    
+                    <div className="flex items-center gap-4 flex-1">
+                      <span className="font-semibold text-lg" style={{ color: TEAM_COLOR?.[m.team1] || "#FFF" }}>{m.team1}</span>
+                      <span className="text-zinc-500 text-sm">vs</span>
+                      <span className="font-semibold text-lg" style={{ color: TEAM_COLOR?.[m.team2] || "#FFF" }}>{m.team2}</span>
+                    </div>
+
+                    {/* Admin Editing Interface */}
+                    {editingId === m.id ? (
+                      <div className="flex items-center gap-3 bg-[#0A0A0A] p-2 rounded-lg border border-white/15">
+                        <input type="number" value={editForm.team1_score} onChange={e => setEditForm({...editForm, team1_score: Number(e.target.value)})} className="w-12 bg-transparent text-center font-display text-xl outline-none" />
+                        <span className="text-zinc-500">-</span>
+                        <input type="number" value={editForm.team2_score} onChange={e => setEditForm({...editForm, team2_score: Number(e.target.value)})} className="w-12 bg-transparent text-center font-display text-xl outline-none" />
+                        
+                        <select value={editForm.status} onChange={e => setEditForm({...editForm, status: e.target.value})} className="bg-[#141414] text-xs px-2 py-2 rounded outline-none border border-white/10">
+                          <option value="scheduled">Scheduled</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                        
+                        <button onClick={() => saveEdit(m.id)} className="text-[#22C55E] p-1"><Save size={20}/></button>
+                        <button onClick={() => setEditingId(null)} className="text-[#FF3B30] p-1"><X size={20}/></button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-5">
+                        <span className="font-display text-2xl tracking-widest">{m.team1_score ?? "-"} : {m.team2_score ?? "-"}</span>
+                        
+                        {/* Status Tag (Green if completed) */}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${m.status === "completed" ? "bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30" : "bg-white/5 text-zinc-400 border border-white/10"}`}>
+                          {m.status || "SCHEDULED"}
+                        </span>
+                        
+                        {isAdmin && (
+                          <button onClick={() => handleEdit(m)} className="text-zinc-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><Edit2 size={16}/></button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
