@@ -137,12 +137,13 @@ class PlayerInput(BaseModel):
 
 
 class MatchUpdate(BaseModel):
-    scheduled_date: Optional[str] = None
-    scheduled_time: Optional[str] = None
     team1_score: Optional[int] = None
     team2_score: Optional[int] = None
+    team1_pts: Optional[int] = None
+    team2_pts: Optional[int] = None
     status: Optional[str] = None
-    venue: Optional[str] = None
+    scheduled_date: Optional[str] = None
+    scheduled_time: Optional[str] = None
 
 
 class NewsInput(BaseModel):
@@ -272,10 +273,10 @@ async def generate_fixtures(admin: dict = Depends(get_current_admin)):
     settings = await db.settings.find_one({"id": "site"})
     teams = [t["name"] for t in settings.get("teams", [])] if settings else []
     
-    match_counts = {
-        "TT": settings.get("tt_matches", 5) if settings else 5,
-        "LT": settings.get("lt_matches", 3) if settings else 3,
-        "BT": settings.get("bt_matches", 3) if settings else 3
+   match_counts = {
+        "TT": max(1, int(settings.get("tt_matches") or 5)) if settings else 5,
+        "LT": max(1, int(settings.get("lt_matches") or 3)) if settings else 3,
+        "BT": max(1, int(settings.get("bt_matches") or 3)) if settings else 3
     }
     
     docs = []
@@ -314,16 +315,25 @@ async def get_standings():
             if m.get("sport") != sport: continue
             t1, t2 = m.get("team1"), m.get("team2")
             if t1 not in table or t2 not in table: continue
+            
             s1, s2 = m.get("team1_score") or 0, m.get("team2_score") or 0
             table[t1]["played"] += 1; table[t2]["played"] += 1
             table[t1]["pf"] += s1; table[t1]["pa"] += s2
             table[t2]["pf"] += s2; table[t2]["pa"] += s1
-            if s1 > s2:
-                table[t1]["won"] += 1; table[t2]["lost"] += 1; table[t1]["points"] += 3
-            elif s2 > s1:
-                table[t2]["won"] += 1; table[t1]["lost"] += 1; table[t2]["points"] += 3
+            
+            # W/L is always determined by the actual score
+            if s1 > s2: table[t1]["won"] += 1; table[t2]["lost"] += 1
+            elif s2 > s1: table[t2]["won"] += 1; table[t1]["lost"] += 1
+
+            # POINTS are applied based on your manual edits, or default to 3/1/0 if blank
+            if "team1_pts" in m and m["team1_pts"] is not None:
+                table[t1]["points"] += m["team1_pts"]
+                table[t2]["points"] += m.get("team2_pts", 0)
             else:
-                table[t1]["points"] += 1; table[t2]["points"] += 1
+                if s1 > s2: table[t1]["points"] += 3
+                elif s2 > s1: table[t2]["points"] += 3
+                else: table[t1]["points"] += 1; table[t2]["points"] += 1
+                
         result[sport] = sorted(table.values(), key=lambda r: (r["points"], r["won"], r["pf"] - r["pa"]), reverse=True)
     
     overall = {t: {"team": t, "played": 0, "won": 0, "lost": 0, "pf": 0, "pa": 0, "points": 0} for t in dynamic_teams}
@@ -332,7 +342,6 @@ async def get_standings():
             for k in ["played", "won", "lost", "pf", "pa", "points"]: overall[r["team"]][k] += r[k]
     result["OVERALL"] = sorted(overall.values(), key=lambda r: (r["points"], r["won"], r["pf"] - r["pa"]), reverse=True)
     return result
-
 
 # ---------------- News ----------------
 @api_router.get("/news")
