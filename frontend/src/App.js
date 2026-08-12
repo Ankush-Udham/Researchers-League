@@ -1,5 +1,6 @@
 import NewsPopup from "./components/NewsPopup";
 import "@/App.css";
+import { Footer } from "./components/Footer";
 import Rules from "./pages/Rules";
 import Legal from "./pages/Legal";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
