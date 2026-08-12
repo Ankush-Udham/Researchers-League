@@ -162,22 +162,33 @@ export default function Admin() {
           <div className="space-y-4" data-testid="admin-players">
             
             <div className="flex justify-end">
-              <button onClick={async () => {
-                const selectedTeam = Array.isArray(form.teams) && form.teams.length > 0 ? form.teams[0].name : "Team A";
+             <button onClick={async () => {
                 const maxAllowed = form.format === "Doubles" ? 2 : 1;
-                const currentCount = players.filter(p => p.team === selectedTeam).length;
+                const availableTeams = (form.teams || []).map(t => t.name);
                 
-                if (currentCount >= maxAllowed) {
-                  toast.error(`Cannot add! ${form.format} allows a maximum of ${maxAllowed} player(s) per team.`);
+                // 1. Smart Auto-Assign: Find the first team that isn't full yet
+                let autoAssignedTeam = null;
+                for (let teamName of availableTeams) {
+                  const currentCount = players.filter(p => p.team === teamName).length;
+                  if (currentCount < maxAllowed) {
+                    autoAssignedTeam = teamName;
+                    break;
+                  }
+                }
+
+                // 2. If all existing teams are completely full, tell the Admin
+                if (!autoAssignedTeam) {
+                  toast.error(`All teams are currently full! Please add a new team in the League Config tab first.`);
                   return;
                 }
 
+                // 3. Create the player and assign them directly to the available team
                 const newNum = players.length > 0 ? Math.max(...players.map(p => p.number || 0)) + 1 : 1;
-                const newPlayer = { number: newNum, name: `Player ${newNum}`, team: selectedTeam, role: "", bio: "", photo_url: "" };
+                const newPlayer = { number: newNum, name: `Player ${newNum}`, team: autoAssignedTeam, role: "", bio: "", photo_url: "" };
                 try {
                   const { data } = await api.post("/players", newPlayer);
                   setPlayers([...players, data]);
-                  toast.success("New player added");
+                  toast.success(`New player automatically added to ${autoAssignedTeam}`);
                 } catch { toast.error("Failed to add player"); }
               }} className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">
                 <Plus size={16} /> Add New Player
