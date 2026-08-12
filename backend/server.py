@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+import datetime
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -502,6 +503,48 @@ async def seed_matches():
     if docs:
         await db.matches.insert_many(docs)
 
+# ... (your other code above) ...
+
+class ArchiveRequest(BaseModel):
+    tournament_name: str
+
+@api_router.post("/history/archive")
+async def archive_tournament(req: ArchiveRequest, admin: dict = Depends(get_current_admin)):
+    # 1. Take a snapshot of the current overall standings
+    standings_data = await get_standings()
+    overall_standings = standings_data.get("OVERALL", [])
+    
+    # 2. Take a snapshot of all current players grouped by their teams
+    players = await db.players.find({}, {"_id": 0}).to_list(1000)
+    teams_data = {}
+    for p in players:
+        t = p.get("team")
+        if t not in teams_data:
+            teams_data[t] = []
+        teams_data[t].append(p)
+        
+    # 3. Create the permanent archive document
+    archive_doc = {
+        "id": str(uuid.uuid4()),
+        "name": req.tournament_name,
+        "date": datetime.datetime.now().strftime("%Y-%m-%d"),
+        "standings": overall_standings,
+        "teams": teams_data
+    }
+    
+    # 4. Save to history and reset all active matches
+    await db.history.insert_one(archive_doc)
+    await db.matches.delete_many({})
+    return {"ok": True}
+
+@api_router.get("/history")
+async def get_history():
+    return await db.history.find({}, {"_id": 0}).to_list(1000)
+
+
+async def seed_players():
+    # If the database is empty, it will auto-fill with these exact names and photo links
+# ... (the rest of the code continues to the bottom) ...
 
 async def seed_players():
     # If the database is empty, it will auto-fill with these exact names and photo links
