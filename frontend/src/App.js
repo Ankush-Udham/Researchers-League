@@ -1,3 +1,4 @@
+import NewsPopup from "./components/NewsPopup";
 import "@/App.css";
 import Legal from "./pages/Legal";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -59,6 +60,7 @@ function App() {
               <ApplyWidget />
               <ScrollToTop />
               <Toaster theme="dark" position="top-center" richColors />
+              <NewsPopup />
             </AuthProvider>
           </SettingsProvider>
         </LanguageProvider>
