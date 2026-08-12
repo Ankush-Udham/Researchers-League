@@ -1,6 +1,5 @@
 import { PageHead } from "../components/shared";
 
-// You can easily edit these rules in the future by changing the text inside the quotation marks!
 const TOURNAMENT_RULES = [
   {
     title: "1. Base Match Points",
@@ -24,7 +23,7 @@ export default function Rules() {
         <div className="card-tech rounded-2xl p-8 sm:p-12 border border-white/10">
           <div className="space-y-8">
             {TOURNAMENT_RULES.map((rule, index) => (
-              <div key={index} className="border-b border-white/10 pb-6 last:border-0 last:pb-0 animate-fade-in-up" style={{ animationDelay: \`\${index * 100}ms\` }}>
+              <div key={index} className="border-b border-white/10 pb-6 last:border-0 last:pb-0 animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                 <h3 className="font-display text-2xl text-[#22C55E] mb-3">{rule.title}</h3>
                 <p className="text-zinc-300 leading-relaxed whitespace-pre-line">{rule.description}</p>
               </div>
