@@ -23,8 +23,9 @@ export const Navbar = () => {
     { to: "/developer", label: t("developer") },
     { to: "/history", label: t("history") },
     { to: "/gallery", label: t("gallery") },
+    { to: "/rules", label: "Rules" },
   ];
-
+  
   const logo = settings?.logo_url ? (settings.logo_url.startsWith("http") ? settings.logo_url : fileUrl(settings.logo_url)) : null;
 
   return (
