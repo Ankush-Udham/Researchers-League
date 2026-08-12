@@ -163,8 +163,17 @@ export default function Admin() {
             
             <div className="flex justify-end">
               <button onClick={async () => {
+                const selectedTeam = Array.isArray(form.teams) && form.teams.length > 0 ? form.teams[0].name : "Team A";
+                const maxAllowed = form.format === "Doubles" ? 2 : 1;
+                const currentCount = players.filter(p => p.team === selectedTeam).length;
+                
+                if (currentCount >= maxAllowed) {
+                  toast.error(`Cannot add! ${form.format} allows a maximum of ${maxAllowed} player(s) per team.`);
+                  return;
+                }
+
                 const newNum = players.length > 0 ? Math.max(...players.map(p => p.number || 0)) + 1 : 1;
-                const newPlayer = { number: newNum, name: `Player ${newNum}`, team: Array.isArray(form.teams) && form.teams.length > 0 ? form.teams[0].name : "Team A", role: "", bio: "", photo_url: "" };
+                const newPlayer = { number: newNum, name: `Player ${newNum}`, team: selectedTeam, role: "", bio: "", photo_url: "" };
                 try {
                   const { data } = await api.post("/players", newPlayer);
                   setPlayers([...players, data]);
