@@ -10,7 +10,6 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { SettingsProvider } from "./context/SettingsContext";
 import { Navbar } from "./components/Navbar";
-import { Footer } from "./components/Footer";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { ApplyWidget } from "./components/ApplyWidget";
 import Home from "./pages/Home";
