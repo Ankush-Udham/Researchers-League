@@ -7,7 +7,7 @@ const TOURNAMENT_RULES = [
   },
   {
     title: "2. Bonus Points System",
-    description: "A winning team may earn one (1) additional bonus point if they achieve victory by a specified point margin. The required margins to secure a bonus point are:\n• Table Tennis: 6-point margin\n• Badminton: 4-point margin\n• Lawn Tennis: 25-point margin\nIf a team wins but does not meet this margin, no bonus points are awarded."
+    description: "A winning team may earn one (1) additional bonus point if they achieve victory by a specified point margin. The required margins to secure a bonus point are 37% of that game:\n• Table Tennis: 4-point margin\n• Badminton: 8-point margin\n• Lawn Tennis: margin system is based on number of games, if won games difference is 1/3, 1/4, 2/5.\nIf a team wins but does not meet this margin, no bonus points are awarded."
   },
   {
     title: "3. Official Scoring Systems",
